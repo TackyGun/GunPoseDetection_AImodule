@@ -1,4 +1,4 @@
-### code detects a pose where the hands and wrists are near the waste### python 
+### code detects a pose where the hands and wrists are near the waste###
 
 
 import os
@@ -100,30 +100,39 @@ capture = cv2.VideoCapture(0)
 capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 capture.set(3, shapeIn[1])
 capture.set(4, shapeIn[2])
-n_frames = 200  # Increase the number of frames processed for improved accuracy
 
-for i in range(n_frames):
-    success, newimg = capture.read()
-    if not success:
-        print("Error reading webcam image.")
-        break
-    img_cropped = preprocess_image(newimg)
-    output = run_model(img_cropped)
-    
-    # Extract keypoints and their corresponding body part names from the output
-    keypoints = find_keypoints(output)
-    
-    # Display the keypoints along with the heatmap
-    plt.imshow(img_cropped)
-    heatmap = np.squeeze(np.max(output[0][:][:][:], axis=2))
-    heatmap = cv2.resize(heatmap, (shapeIn[2], shapeIn[1]))
-    plt.imshow(heatmap, cmap='hot', interpolation='nearest', alpha=0.4)
-    
-    # Check for potential gun-holding pose
-    detect_gun_pose(keypoints)
-    
-    IPython.display.clear_output(wait=True)
-    IPython.display.display(plt.gcf())
+try:
+    while True:
+        success, newimg = capture.read()
+        if not success:
+            print("Error reading webcam image.")
+            break
 
-# Release the camera
+        img_cropped = preprocess_image(newimg)
+        output = run_model(img_cropped)
+
+        # Extract keypoints and their corresponding body part names from the output
+        keypoints = find_keypoints(output)
+
+        # Clear the previous plot
+        plt.clf()
+
+        # Display the keypoints along with the heatmap
+        plt.imshow(img_cropped)
+        heatmap = np.squeeze(np.max(output[0][:][:][:], axis=2))
+        heatmap = cv2.resize(heatmap, (shapeIn[2], shapeIn[1]))
+        plt.imshow(heatmap, cmap='hot', interpolation='nearest', alpha=0.4)
+
+        # Check for potential gun-holding pose
+        detect_gun_pose(keypoints)
+
+        # Display the updated frame
+        IPython.display.clear_output(wait=True)
+        IPython.display.display(plt.gcf())
+
+except KeyboardInterrupt:
+    print("Stopped by user.")
+
+# Release the webcam
 capture.release()
+cv2.destroyAllWindows()
